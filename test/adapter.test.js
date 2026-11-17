@@ -90,10 +90,30 @@ test('accounting amount strings parse without float coercion', () => {
   const r = fixture();
   r.rows[0].actuals = '(10.00)';
   r.rows[1].actuals = '1,234.56';
-  r.totals.actuals = '1224.56';
+  r.totals.actuals = '1,224.56';
   const result = run(r);
   assert.equal(result.rows[0].actuals, -1000);
   assert.equal(result.rows[1].actuals, 123456);
+});
+for (const value of ['5,25', '1,0,0', '12,34']) {
+  test(`rejects invalid amount grouping ${JSON.stringify(value)}`, () => {
+    const r = fixture();
+    r.rows[0].actuals = value;
+    assert.throws(() => run(r), /Decimal comma|thousands grouping|explicit decimal/);
+  });
+}
+test('compare accepts snapshots with jsonb-style key reordering', () => {
+  const valid = run(fixture());
+  const reorderDeep = value => {
+    if (Array.isArray(value)) return value.map(reorderDeep);
+    if (value && typeof value === 'object') {
+      return Object.fromEntries(Object.keys(value).sort().reverse().map(key => [key, reorderDeep(value[key])]));
+    }
+    return value;
+  };
+  const { fingerprint, importedAt, readOnly, warnings, ...canonical } = valid;
+  const reshaped = { ...reorderDeep(canonical), fingerprint, importedAt, readOnly, warnings };
+  assert.equal(compare(valid, reshaped, access).duplicate, true);
 });
 for (const value of ['=CMD|x', '+cmd', '@evil', '\t=1+1']) {
   test(`rejects formula-prefixed account ${JSON.stringify(value)}`, () => {

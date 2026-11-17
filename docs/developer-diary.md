@@ -36,6 +36,12 @@ Addressed the six open defect issues with regression tests and CI lint. `compare
 
 Validation: 70/70 tests pass with `npm run lint`, `npm test` and `npm audit --audit-level=moderate`. No live vendor access, host deployment or credential use. Parallel open PR #11 carries the same core fix set on a different branch; coordinator should merge one.
 
+## 2026-11-17 — Tighten amount grouping and canonical fingerprint hashing
+
+PR #12 review: `money()` now accepts commas only as US thousands separators (`1,234.56`) and rejects decimal commas and malformed groupings (`5,25`, `1,0,0`, `12,34`). Fingerprints use sorted-key canonical JSON so jsonb round-trip key order does not break `compare()` integrity checks; documented that the digest detects field inconsistency, not whole-record forgery.
+
+Validation: expanded adapter regressions; full suite passes with lint and moderate audit locally.
+
 ## 2026-11-17 — Record current optional host release
 
 Added `docs/host-release-status.md` linking the deployed TakeAgent CSV/Excel release and explaining the division between shared host file handling and this adapter. Preserved optional installation, no-new-configuration behavior and vendor-access limitations. Refetched origin and verified the existing adapter source was already synchronized. The complete repository suite passed 55/55 tests. This commit changes documentation only; no adapter or deployment change is claimed.

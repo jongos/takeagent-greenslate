@@ -25,9 +25,17 @@ function money(value) {
     negative = true;
     raw = raw.slice(1).trim();
   }
-  raw = raw.replace(/,/g, '');
-  if (!/^\d+(\.\d{1,2})?$/.test(raw)) fail('Amounts must be explicit decimal strings with at most two places');
-  const [whole, fraction = ''] = raw.split('.');
+  let digits;
+  if (raw.includes(',')) {
+    if (/^\d+,\d{1,2}$/.test(raw)) fail('Decimal comma amounts are not supported; use a dot decimal separator');
+    if (!/^\d{1,3}(,\d{3})*(\.\d{1,2})?$/.test(raw)) fail('Invalid amount thousands grouping');
+    digits = raw.replace(/,/g, '');
+  } else if (!/^\d+(\.\d{1,2})?$/.test(raw)) {
+    fail('Amounts must be explicit decimal strings with at most two places');
+  } else {
+    digits = raw;
+  }
+  const [whole, fraction = ''] = digits.split('.');
   const result = Number(whole) * 100 + Number(fraction.padEnd(2, '0'));
   if (!Number.isSafeInteger(result)) fail('Amount exceeds safe range');
   return negative ? -result : result;
@@ -46,8 +54,15 @@ export function buildCanonicalSnapshot(report, rows, totals, source) {
   return { tenantId: report.tenantId, projectId: report.projectId, sourceApplication: 'GreenSlate', profile: report.profile, sourceProjectId: report.sourceProjectId, revision: report.revision, asOf: report.asOf, periodBasis: report.periodBasis, currency: report.currency, fxBasis: report.fxBasis, sourceFile: report.sourceFile, complete: report.complete === true, ...(source ? { source } : {}), amountUnit: 'minor-units', rows, totals };
 }
 
+function canonicalStringify(value) {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(canonicalStringify).join(',')}]`;
+  return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${canonicalStringify(value[key])}`).join(',')}}`;
+}
+
+// Stable digest over sorted-key JSON; detects inconsistency between fingerprint and canonical fields, not hostile forgery of an entire stored record.
 export function fingerprintCanonical(snapshot) {
-  return createHash('sha256').update(JSON.stringify(snapshot)).digest('hex');
+  return createHash('sha256').update(canonicalStringify(snapshot)).digest('hex');
 }
 
 function assertTrustedSnapshot(snapshot) {
