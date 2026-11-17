@@ -39,7 +39,9 @@ export function preview(report, access, now = new Date()) {
     if (!text(get('account')) || typeof get('parentAccount') !== 'string') fail('Invalid account hierarchy');
     if (accounts.has(get('account'))) fail('Duplicate account or subtotal overlap');
     accounts.add(get('account'));
-    const row = { account: get('account'), parentAccount: get('parentAccount'), sourceRow: index + 1 };
+    const sourceRow = report.sourceRows?.[index] ?? index + 1;
+    if (!Number.isSafeInteger(sourceRow) || sourceRow < 1) fail('Invalid source row');
+    const row = { account: get('account'), parentAccount: get('parentAccount'), sourceRow };
     for (const field of moneyFields) {
       row[field] = money(get(field));
       totals[field] += row[field];
