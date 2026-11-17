@@ -1,0 +1,65 @@
+{
+  "profile": "synthetic-greenslate-tabular-v1",
+  "tenantId": "synthetic-tenant",
+  "projectId": "synthetic-project",
+  "sourceProjectId": "GS-SYNTHETIC",
+  "revision": "1",
+  "periodBasis": "production-to-date",
+  "fxBasis": "native-no-conversion",
+  "sourceFile": "synthetic-selected-rows.json",
+  "currency": "USD",
+  "asOf": "2026-11-01",
+  "complete": true,
+  "actualsBasis": "paid-only",
+  "commitmentsBasis": "remaining-excludes-unpaid-liabilities",
+  "mapping": {
+    "project": "project",
+    "account": "account",
+    "parentAccount": "parentAccount",
+    "currency": "currency",
+    "originalBudget": "originalBudget",
+    "revisedBudget": "revisedBudget",
+    "actuals": "actuals",
+    "unpaidLiabilities": "unpaidLiabilities",
+    "openCommitments": "openCommitments",
+    "estimateToComplete": "estimateToComplete",
+    "estimatedFinalCost": "estimatedFinalCost"
+  },
+  "rows": [
+    {
+      "project": "GS-SYNTHETIC",
+      "account": "1001",
+      "parentAccount": "1000",
+      "currency": "USD",
+      "originalBudget": "1000",
+      "revisedBudget": "1100",
+      "actuals": "300",
+      "unpaidLiabilities": "100",
+      "openCommitments": "200",
+      "estimateToComplete": "500",
+      "estimatedFinalCost": "1100"
+    },
+    {
+      "project": "GS-SYNTHETIC",
+      "account": "1002",
+      "parentAccount": "1000",
+      "currency": "USD",
+      "originalBudget": "100",
+      "revisedBudget": "100",
+      "actuals": "-10",
+      "unpaidLiabilities": "0",
+      "openCommitments": "0",
+      "estimateToComplete": "110",
+      "estimatedFinalCost": "100"
+    }
+  ],
+  "totals": {
+    "originalBudget": "1100",
+    "revisedBudget": "1200",
+    "actuals": "290",
+    "unpaidLiabilities": "100",
+    "openCommitments": "200",
+    "estimateToComplete": "610",
+    "estimatedFinalCost": "1200"
+  }
+}
