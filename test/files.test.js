@@ -4,7 +4,8 @@ import { readFileSync } from 'node:fs';
 import ExcelJS from 'exceljs';
 import JSZip from 'jszip';
 import { createHash } from 'node:crypto';
-import { previewCsv, previewXlsx, limits } from '../src/files.js';
+import { previewCsv, limits } from '../src/files.js';
+import { previewXlsx } from '../src/xlsx-internal.js';
 const fixture = () => JSON.parse(readFileSync(new URL('../fixtures/synthetic-report.json', import.meta.url)));
 const access = { tenantId: 'synthetic-tenant', projectId: 'synthetic-project' };
 const now = new Date('2026-11-17');
@@ -21,6 +22,7 @@ for (const [name, mutate] of [
   ['merged cells', (w,s) => { s.mergeCells('B2:C2'); }],
   ['formula cached value', (w,s) => { s.getCell('G2').value = { formula: '1+2', result: 3 }; }],
   ['numeric account identity', (w,s) => { s.getCell('B2').value = 123; }],
+  ['numeric money cell', (w,s) => { s.getCell('G2').value = 300; }],
   ['extra sensitive column', (w,s) => { s.getCell('L1').value = 'Bank account'; s.getCell('L2').value = 'synthetic'; }],
 ]) test(`XLSX rejects ${name}`, async () => { const buffer = await xlsx(mutate); await assert.rejects(() => previewXlsx(buffer, fixture(), access, {sheetName:'Cost report',now})); });
 test('XLSX requires explicit selection and rejects invalid archives', async () => { await assert.rejects(() => previewXlsx(Buffer.from('bad'), fixture(), access, {sheetName:'Cost report',now})); await assert.rejects(() => previewXlsx(Buffer.from('bad'), fixture(), access)); });
