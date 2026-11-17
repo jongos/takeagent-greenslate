@@ -29,3 +29,7 @@ Validation: all 55 tests pass, including opposite-sign overflow, maximum exact d
 ## 2026-11-17 - Document corrected snapshot identity contract
 
 Documented completeness and source provenance as identity inputs, exact delta rejection, and the requirement to establish a reviewed baseline for older snapshots. Normalized diary line endings after the prior encoding repair; historical outcomes are unchanged. Validation: reviewed documentation against the 55 passing regression tests; no source, deployment or live vendor changes in this documentation commit.
+
+## 2026-11-17 — Record current optional host release
+
+Added `docs/host-release-status.md` linking the deployed TakeAgent CSV/Excel release and explaining the division between shared host file handling and this adapter. Preserved optional installation, no-new-configuration behavior and vendor-access limitations. Refetched origin and verified the existing adapter source was already synchronized. The complete repository suite passed 55/55 tests. This commit changes documentation only; no adapter or deployment change is claimed.
