@@ -18,6 +18,15 @@ function money(value) {
   return negative ? -result : result;
 }
 
+function sourceProvenance(source) {
+  if (source === undefined) return undefined;
+  if (!source || !['csv', 'xlsx'].includes(source.format) || !/^[a-f0-9]{64}$/.test(source.sha256) || source.headerRow !== 1) fail('Invalid source provenance');
+  if (Object.keys(source).some(key => !['format', 'sha256', 'headerRow', 'sheetName', 'columns'].includes(key))) fail('Unexpected source provenance');
+  if (source.format === 'xlsx' ? !text(source.sheetName) || source.sheetName.length > 128 : source.sheetName !== undefined) fail('Invalid source worksheet');
+  if (!source.columns || Object.keys(source.columns).length !== required.length || required.some(field => !Number.isInteger(source.columns[field]) || source.columns[field] < 1 || source.columns[field] > 32) || new Set(Object.values(source.columns)).size !== required.length) fail('Invalid source columns');
+  return { format: source.format, sha256: source.sha256, headerRow: 1, ...(source.format === 'xlsx' ? { sheetName: source.sheetName } : {}), columns: Object.fromEntries(required.map(field => [field, source.columns[field]])) };
+}
+
 export function preview(report, access, now = new Date()) {
   if (!access || !text(access.tenantId) || !text(access.projectId) || access.tenantId !== report.tenantId || access.projectId !== report.projectId) fail('Project access mismatch');
   if (report.profile !== 'synthetic-greenslate-tabular-v1') fail('Unsupported profile; vendor export version not verified');
@@ -51,7 +60,8 @@ export function preview(report, access, now = new Date()) {
   });
   for (const row of rows) if (row.parentAccount && accounts.has(row.parentAccount)) fail('Header/subtotal rows cannot overlap detail rows');
   for (const field of moneyFields) if (money(report.totals?.[field]) !== totals[field]) fail(`Source total does not reconcile: ${field}`);
-  const snapshot = { tenantId: report.tenantId, projectId: report.projectId, sourceApplication: 'GreenSlate', profile: report.profile, sourceProjectId: report.sourceProjectId, revision: report.revision, asOf: report.asOf, periodBasis: report.periodBasis, currency: report.currency, fxBasis: report.fxBasis, sourceFile: report.sourceFile, amountUnit: 'minor-units', rows, totals };
+  const source = sourceProvenance(report.source);
+  const snapshot = { tenantId: report.tenantId, projectId: report.projectId, sourceApplication: 'GreenSlate', profile: report.profile, sourceProjectId: report.sourceProjectId, revision: report.revision, asOf: report.asOf, periodBasis: report.periodBasis, currency: report.currency, fxBasis: report.fxBasis, sourceFile: report.sourceFile, complete: report.complete === true, ...(source ? { source } : {}), amountUnit: 'minor-units', rows, totals };
   const fingerprint = createHash('sha256').update(JSON.stringify(snapshot)).digest('hex');
   return { ...snapshot, fingerprint, importedAt: now.toISOString(), readOnly: true, warnings: [...(now.getTime() - asOf > 30 * 86400000 ? ['STALE_REPORT'] : []), ...(report.complete === true ? [] : ['PARTIAL_REPORT']), 'SYNTHETIC_PROFILE_ONLY', 'COSTS_ARE_NOT_FINANCING_EVIDENCE'] };
 }
@@ -62,5 +72,11 @@ export function compare(previous, next, access) {
   if (previous.fingerprint === next.fingerprint) return { duplicate: true, deltas: {} };
   if (previous.revision === next.revision) fail('Revision conflict');
   if (date(next.asOf) < date(previous.asOf)) fail('Older report cannot replace newer report');
-  return { duplicate: false, deltas: Object.fromEntries(moneyFields.map(field => [field, next.totals[field] - previous.totals[field]])) };
+  const deltas = Object.fromEntries(moneyFields.map(field => {
+    if (!Number.isSafeInteger(next.totals[field]) || !Number.isSafeInteger(previous.totals[field])) fail('Invalid snapshot amount');
+    const difference = BigInt(next.totals[field]) - BigInt(previous.totals[field]);
+    if (difference > BigInt(Number.MAX_SAFE_INTEGER) || difference < -BigInt(Number.MAX_SAFE_INTEGER)) fail('Revision delta exceeds safe range');
+    return [field, Number(difference)];
+  }));
+  return { duplicate: false, deltas };
 }
