@@ -76,3 +76,42 @@ test('identical partial reports still deduplicate', () => {
   const r = fixture(); r.complete = false;
   assert.equal(compare(run(r), run(r), access).duplicate, true);
 });
+test('JSON preview rejects client-forged source provenance', () => {
+  const r = fixture();
+  r.source = {
+    format: 'csv',
+    sha256: 'f'.repeat(64),
+    headerRow: 1,
+    columns: Object.fromEntries(moneyFields.map((field, i) => [field, i + 1])),
+  };
+  assert.throws(() => run(r), /not trusted/);
+});
+test('accounting amount strings parse without float coercion', () => {
+  const r = fixture();
+  r.rows[0].actuals = '(10.00)';
+  r.rows[1].actuals = '1,234.56';
+  r.totals.actuals = '1224.56';
+  const result = run(r);
+  assert.equal(result.rows[0].actuals, -1000);
+  assert.equal(result.rows[1].actuals, 123456);
+});
+for (const value of ['=CMD|x', '+cmd', '@evil', '\t=1+1']) {
+  test(`rejects formula-prefixed account ${JSON.stringify(value)}`, () => {
+    const r = fixture();
+    r.rows[0].account = value;
+    assert.throws(() => run(r), /Invalid account/);
+  });
+}
+test('compare rejects forged fingerprint with tampered totals', () => {
+  const valid = run(fixture());
+  const tampered = structuredClone(valid);
+  tampered.totals.actuals = 0;
+  assert.throws(() => compare(valid, tampered, access), /fingerprint mismatch|totals do not reconcile/);
+});
+test('compare rejects mismatched totals even when fingerprint is copied', () => {
+  const valid = run(fixture());
+  const tampered = structuredClone(valid);
+  tampered.totals.actuals = valid.totals.actuals - 100;
+  tampered.fingerprint = valid.fingerprint;
+  assert.throws(() => compare(valid, tampered, access), /fingerprint mismatch|totals do not reconcile/);
+});
