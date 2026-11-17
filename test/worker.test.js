@@ -1,0 +1,20 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import ExcelJS from 'exceljs';
+import { previewXlsxIsolated, workerLimits } from '../src/isolated-xlsx.js';
+import { runBoundedWorker } from '../src/worker-runner.js';
+const fixture = () => JSON.parse(readFileSync(new URL('../fixtures/synthetic-report.json', import.meta.url)));
+const access = { tenantId: 'synthetic-tenant', projectId: 'synthetic-project' };
+const options = { sheetName: 'Cost report', now: new Date('2026-11-17') };
+async function workbook() { const r = fixture(), w = new ExcelJS.Workbook(), s = w.addWorksheet(options.sheetName), headers = Object.keys(r.rows[0]); s.addRow(headers); for (const row of r.rows) s.addRow(headers.map(h => row[h])); return Buffer.from(await w.xlsx.writeBuffer()); }
+const script = code => new URL(`data:text/javascript,${encodeURIComponent(code)}`);
+test('isolated preview returns reconciled selected rows', async () => { const result = await previewXlsxIsolated(await workbook(), fixture(), access, options); assert.equal(result.totals.actuals, 29000); assert.equal(result.readOnly, true); });
+test('isolated preview rejects invalid archive without parser details', async () => { await assert.rejects(() => previewXlsxIsolated(Buffer.from('bad'), fixture(), access, options), /^Error: XLSX preview rejected$/); });
+test('isolated preview rejects input and metadata before worker startup', async () => { await assert.rejects(() => previewXlsxIsolated(Buffer.alloc(workerLimits.inputBytes + 1), fixture(), access, options), /Input byte/); await assert.rejects(() => previewXlsxIsolated(Buffer.from('x'), { huge: 'x'.repeat(workerLimits.metadataBytes) }, access, options), /Metadata byte/); });
+test('isolated preview enforces response budget inside worker', async () => { const buffer = await workbook(); await assert.rejects(() => previewXlsxIsolated(buffer, fixture(), access, { ...options, responseBytes: 10 }), /preview rejected/); });
+test('busy-loop worker times out and is terminated before rejection', async () => { const start = Date.now(); await assert.rejects(() => runBoundedWorker(script('while(true) {}'), {}, { timeoutMs: 50 }), /timed out/); assert.ok(Date.now() - start < 3000); });
+test('worker receiver independently rejects oversized responses', async () => { await assert.rejects(() => runBoundedWorker(script("import {parentPort} from 'node:worker_threads'; parentPort.postMessage({ok:true,json:JSON.stringify('x'.repeat(1000))})"), {}, { responseBytes: 100 }), /response exceeds/); });
+test('worker crash is redacted and cleaned up', async () => { await assert.rejects(() => runBoundedWorker(script("throw new Error('private source data')"), {}), /^Error: XLSX worker failed$/); });
+test('worker exiting without result fails closed', async () => { await assert.rejects(() => runBoundedWorker(script('process.exit(0)'), {}), /without a result/); });
+test('host cannot raise hard worker limits', async () => { await assert.rejects(() => runBoundedWorker(script(''), {}, { timeoutMs: 5001 }), /Invalid worker limits/); await assert.rejects(() => runBoundedWorker(script(''), {}, { responseBytes: workerLimits.responseBytes + 1 }), /Invalid worker limits/); });

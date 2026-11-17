@@ -15,7 +15,7 @@
 ## Engineering-owned
 
 - Add authenticated TakeAgent host wiring, transmission preview and guided mapping UI using existing document workflows, then source-linked findings with separate finance/cash evidence.
-- Put parser execution in a bounded isolated runtime before exposing uploads; current ZIP/row/byte limits do not bound all parser CPU or heap behavior.
+- Worker isolation with timeout, V8 heap/stack limits and response caps is implemented and tested. Configure deployment-level process/container RSS/CPU and concurrency limits before production untrusted uploads; worker resource limits do not cover all native memory.
 - Add verified vendor profiles with support matrices; current CSV/XLSX readers only process the synthetic explicit mapping contract.
 - Support location/episode dimensions and missing optional fields without guessing or allowing account overlap.
 - Add tenant-scoped retention/disconnect/deletion, operational monitoring, revision concurrency controls and end-to-end host tests.
