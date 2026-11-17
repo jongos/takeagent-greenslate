@@ -1,5 +1,5 @@
 import { parentPort, workerData } from 'node:worker_threads';
-import { previewXlsx } from './files.js';
+import { previewXlsx } from './xlsx-internal.js';
 
 try {
   const { bytes, metadata, access, sheetName, now, responseBytes } = workerData;

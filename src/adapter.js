@@ -4,15 +4,30 @@ export const moneyFields = ['originalBudget', 'revisedBudget', 'actuals', 'unpai
 const required = ['project', 'account', 'parentAccount', 'currency', ...moneyFields];
 const fail = message => { throw new Error(message); };
 const text = value => typeof value === 'string' && value.trim().length > 0;
+const injectionPrefix = /^\s*[=+\-@\t\r]/;
+function safeIdentifier(value, label) {
+  if (!text(value) || injectionPrefix.test(value)) fail(`Invalid ${label}`);
+  return value;
+}
 function date(value) {
   if (!text(value) || !/^\d{4}-\d{2}-\d{2}$/.test(value) || !Number.isFinite(Date.parse(value)) || new Date(value).toISOString().slice(0, 10) !== value) fail('Invalid reporting date');
   return Date.parse(value);
 }
 // Integer minor units avoid silent floating-point reconciliation drift.
 function money(value) {
-  if (typeof value !== 'string' || !/^-?\d+(\.\d{1,2})?$/.test(value)) fail('Amounts must be explicit decimal strings with at most two places');
-  const negative = value.startsWith('-');
-  const [whole, fraction = ''] = value.replace('-', '').split('.');
+  if (typeof value !== 'string') fail('Amounts must be explicit decimal strings with at most two places');
+  let raw = value.trim();
+  let negative = false;
+  if (/^\(.*\)$/.test(raw)) {
+    negative = true;
+    raw = raw.slice(1, -1).trim();
+  } else if (raw.startsWith('-')) {
+    negative = true;
+    raw = raw.slice(1).trim();
+  }
+  raw = raw.replace(/,/g, '');
+  if (!/^\d+(\.\d{1,2})?$/.test(raw)) fail('Amounts must be explicit decimal strings with at most two places');
+  const [whole, fraction = ''] = raw.split('.');
   const result = Number(whole) * 100 + Number(fraction.padEnd(2, '0'));
   if (!Number.isSafeInteger(result)) fail('Amount exceeds safe range');
   return negative ? -result : result;
@@ -27,7 +42,34 @@ function sourceProvenance(source) {
   return { format: source.format, sha256: source.sha256, headerRow: 1, ...(source.format === 'xlsx' ? { sheetName: source.sheetName } : {}), columns: Object.fromEntries(required.map(field => [field, source.columns[field]])) };
 }
 
-export function preview(report, access, now = new Date()) {
+export function buildCanonicalSnapshot(report, rows, totals, source) {
+  return { tenantId: report.tenantId, projectId: report.projectId, sourceApplication: 'GreenSlate', profile: report.profile, sourceProjectId: report.sourceProjectId, revision: report.revision, asOf: report.asOf, periodBasis: report.periodBasis, currency: report.currency, fxBasis: report.fxBasis, sourceFile: report.sourceFile, complete: report.complete === true, ...(source ? { source } : {}), amountUnit: 'minor-units', rows, totals };
+}
+
+export function fingerprintCanonical(snapshot) {
+  return createHash('sha256').update(JSON.stringify(snapshot)).digest('hex');
+}
+
+function assertTrustedSnapshot(snapshot) {
+  if (!snapshot || snapshot.sourceApplication !== 'GreenSlate' || snapshot.amountUnit !== 'minor-units' || !Array.isArray(snapshot.rows) || !snapshot.totals) fail('Invalid snapshot');
+  const { fingerprint, importedAt, readOnly, warnings, ...rest } = snapshot;
+  const expectedFingerprint = fingerprintCanonical(rest);
+  if (typeof fingerprint !== 'string' || fingerprint !== expectedFingerprint) fail('Snapshot fingerprint mismatch');
+  const totals = Object.fromEntries(moneyFields.map(field => [field, 0]));
+  for (const row of snapshot.rows) {
+    for (const field of moneyFields) {
+      if (!Number.isSafeInteger(row[field])) fail('Invalid snapshot amount');
+      totals[field] += row[field];
+      if (!Number.isSafeInteger(totals[field])) fail('Total exceeds safe range');
+    }
+  }
+  for (const field of moneyFields) {
+    if (totals[field] !== snapshot.totals[field]) fail(`Snapshot totals do not reconcile: ${field}`);
+  }
+}
+
+export function preview(report, access, now = new Date(), { verifiedSource } = {}) {
+  if (report.source !== undefined) fail('Client-supplied source provenance is not trusted');
   if (!access || !text(access.tenantId) || !text(access.projectId) || access.tenantId !== report.tenantId || access.projectId !== report.projectId) fail('Project access mismatch');
   if (report.profile !== 'synthetic-greenslate-tabular-v1') fail('Unsupported profile; vendor export version not verified');
   for (const field of ['sourceProjectId', 'revision', 'periodBasis', 'fxBasis', 'sourceFile']) if (!text(report[field])) fail(`Missing metadata: ${field}`);
@@ -45,7 +87,8 @@ export function preview(report, access, now = new Date()) {
     if (!input || Object.keys(input).length !== allowedColumns.size || Object.keys(input).some(key => !allowedColumns.has(key))) fail('Schema drift or sensitive/unmapped columns; select only approved columns');
     const get = field => input[report.mapping[field]];
     if (get('project') !== report.sourceProjectId || get('currency') !== report.currency) fail('Mixed project or currency');
-    if (!text(get('account')) || typeof get('parentAccount') !== 'string') fail('Invalid account hierarchy');
+    safeIdentifier(get('account'), 'account');
+    if (typeof get('parentAccount') !== 'string' || (get('parentAccount') && injectionPrefix.test(get('parentAccount')))) fail('Invalid account hierarchy');
     if (accounts.has(get('account'))) fail('Duplicate account or subtotal overlap');
     accounts.add(get('account'));
     const sourceRow = report.sourceRows?.[index] ?? index + 1;
@@ -60,14 +103,17 @@ export function preview(report, access, now = new Date()) {
   });
   for (const row of rows) if (row.parentAccount && accounts.has(row.parentAccount)) fail('Header/subtotal rows cannot overlap detail rows');
   for (const field of moneyFields) if (money(report.totals?.[field]) !== totals[field]) fail(`Source total does not reconcile: ${field}`);
-  const source = sourceProvenance(report.source);
-  const snapshot = { tenantId: report.tenantId, projectId: report.projectId, sourceApplication: 'GreenSlate', profile: report.profile, sourceProjectId: report.sourceProjectId, revision: report.revision, asOf: report.asOf, periodBasis: report.periodBasis, currency: report.currency, fxBasis: report.fxBasis, sourceFile: report.sourceFile, complete: report.complete === true, ...(source ? { source } : {}), amountUnit: 'minor-units', rows, totals };
-  const fingerprint = createHash('sha256').update(JSON.stringify(snapshot)).digest('hex');
+  const source = sourceProvenance(verifiedSource);
+  const snapshot = buildCanonicalSnapshot(report, rows, totals, source);
+  const fingerprint = fingerprintCanonical(snapshot);
   return { ...snapshot, fingerprint, importedAt: now.toISOString(), readOnly: true, warnings: [...(now.getTime() - asOf > 30 * 86400000 ? ['STALE_REPORT'] : []), ...(report.complete === true ? [] : ['PARTIAL_REPORT']), 'SYNTHETIC_PROFILE_ONLY', 'COSTS_ARE_NOT_FINANCING_EVIDENCE'] };
 }
 
 export function compare(previous, next, access) {
-  for (const snapshot of [previous, next]) if (snapshot.tenantId !== access.tenantId || snapshot.projectId !== access.projectId) fail('Project access mismatch');
+  for (const snapshot of [previous, next]) {
+    if (snapshot.tenantId !== access.tenantId || snapshot.projectId !== access.projectId) fail('Project access mismatch');
+    assertTrustedSnapshot(snapshot);
+  }
   for (const field of ['sourceProjectId', 'currency', 'periodBasis', 'fxBasis', 'profile']) if (previous[field] !== next[field]) fail(`Incompatible snapshot: ${field}`);
   if (previous.fingerprint === next.fingerprint) return { duplicate: true, deltas: {} };
   if (previous.revision === next.revision) fail('Revision conflict');
