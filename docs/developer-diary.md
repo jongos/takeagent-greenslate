@@ -30,6 +30,12 @@ Validation: all 55 tests pass, including opposite-sign overflow, maximum exact d
 
 Documented completeness and source provenance as identity inputs, exact delta rejection, and the requirement to establish a reviewed baseline for older snapshots. Normalized diary line endings after the prior encoding repair; historical outcomes are unchanged. Validation: reviewed documentation against the 55 passing regression tests; no source, deployment or live vendor changes in this documentation commit.
 
+## 2026-11-17 — Harden compare(), provenance, money parsing, and XLSX boundaries (#5–#10)
+
+Addressed the six open defect issues with regression tests and CI lint. `compare()` recomputes fingerprints and reconciles row totals before duplicate or delta logic. JSON `preview()` rejects forged `source`; file readers attach provenance via `verifiedSource` only. Main-thread XLSX parsing moved to `src/xlsx-internal.js` and is no longer exported from `files.js`. Identifier and header fields reject formula-prefix injection; `money()` accepts parenthesized credits and comma grouping while XLSX rejects numeric money cells. CI runs `npm run lint` and `test/boundary.test.js` guards host-thread ExcelJS imports.
+
+Validation: 70/70 tests pass with `npm run lint`, `npm test` and `npm audit --audit-level=moderate`. No live vendor access, host deployment or credential use. Parallel open PR #11 carries the same core fix set on a different branch; coordinator should merge one.
+
 ## 2026-11-17 — Record current optional host release
 
 Added `docs/host-release-status.md` linking the deployed TakeAgent CSV/Excel release and explaining the division between shared host file handling and this adapter. Preserved optional installation, no-new-configuration behavior and vendor-access limitations. Refetched origin and verified the existing adapter source was already synchronized. The complete repository suite passed 55/55 tests. This commit changes documentation only; no adapter or deployment change is claimed.
