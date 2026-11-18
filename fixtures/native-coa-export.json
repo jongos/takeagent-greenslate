@@ -1,0 +1,62 @@
+{
+  "profile": "greenslate-coa-excel-export-provisional-v1",
+  "profileCertification": "provisional",
+  "nativeExportAttestedComplete": true,
+  "tenantId": "synthetic-tenant",
+  "projectId": "synthetic-project",
+  "sourceProjectId": "GS-NATIVE-SYNTH",
+  "revision": "native-1",
+  "periodBasis": "production-to-date",
+  "fxBasis": "native-no-conversion",
+  "sourceFile": "synthetic-native-coa.csv",
+  "currency": "USD",
+  "asOf": "2026-11-01",
+  "complete": true,
+  "rows": [
+    {
+      "Account": "2100",
+      "Header Account": "2000",
+      "Currency": "USD",
+      "Budget": "5000.00",
+      "Revised Budget": "5200.00",
+      "Actuals": "1800.00",
+      "Unpaid": "200.00",
+      "PO Commit": "400.00",
+      "ETC": "3200.00",
+      "EFC": "5600.00"
+    },
+    {
+      "Account": "6100",
+      "Header Account": "6000",
+      "Currency": "USD",
+      "Budget": "800.00",
+      "Revised Budget": "800.00",
+      "Actuals": "50.00",
+      "Unpaid": "0.00",
+      "PO Commit": "0.00",
+      "ETC": "750.00",
+      "EFC": "800.00"
+    },
+    {
+      "Account": "9900",
+      "Header Account": "9000",
+      "Currency": "USD",
+      "Budget": "300.00",
+      "Revised Budget": "300.00",
+      "Actuals": "0.00",
+      "Unpaid": "0.00",
+      "PO Commit": "0.00",
+      "ETC": "300.00",
+      "EFC": "300.00"
+    }
+  ],
+  "totals": {
+    "Budget": "6100.00",
+    "Revised Budget": "6300.00",
+    "Actuals": "1850.00",
+    "Unpaid": "200.00",
+    "PO Commit": "400.00",
+    "ETC": "4250.00",
+    "EFC": "6700.00"
+  }
+}

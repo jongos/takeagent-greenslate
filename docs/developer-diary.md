@@ -1,5 +1,9 @@
 # Developer diary
 
+## 2026-11-18 — Provisional native Chart of Accounts export profile
+
+Added `greenslate-coa-excel-export-provisional-v1` with documented column map, synthetic fixture, `previewNativeCoaCsv`, stable `lineId` cross-walk keys, and `costFindings` with refused funding gap. Layout is explicitly provisional pending user-attested vendor samples; see `docs/native-coa-export-profile.md` and `PROVENANCE.md`.
+
 ## 2026-11-17 — Add synthetic GreenSlate cost snapshot preview and reconciliation
 
 Started issue #58 in this dedicated repository. Added a dependency-free read-only tabular adapter, explicit mappings, signed minor-unit reconciliation, source provenance, project boundary checks, revision comparison and a CLI. Added synthetic fixtures and negative tests because real export schemas and feed entitlements are unverified. Official sources support a file-first investigation and partner access discovery, not a claim of compatible live access.
