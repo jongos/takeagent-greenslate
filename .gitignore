@@ -1,3 +1,6 @@
 node_modules/
 .env*
 local-data/
+.DS_Store
+*.log
+coverage/
