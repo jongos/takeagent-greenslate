@@ -44,3 +44,7 @@ Parser references reviewed November 17, 2026: [ExcelJS](https://github.com/excel
 ## Snapshot identity
 
 Completeness now participates in the fingerprint. Changing complete/partial status requires a new reviewed revision even when amounts stay unchanged. Revision deltas use exact integer arithmetic and reject unsafe output ranges. File-reader results retain source format, input-byte SHA-256, one-based mapped columns and header row; XLSX also retains the selected worksheet. Source bytes and selection participate in evidence identity. Establish a reviewed new baseline for snapshots created before these fields existed.
+
+## License
+
+Licensed under the MediaHedge License. Use is permitted only as allowed by the TakeAgent Terms of Service at https://takeagent.ai/terms. See LICENSE.

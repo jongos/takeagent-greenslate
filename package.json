@@ -1,6 +1,7 @@
 {
   "name": "takeagent-greenslate",
   "version": "0.1.0",
+  "license": "SEE LICENSE IN LICENSE",
   "private": true,
   "description": "Synthetic GreenSlate tabular cost-report adapter and reconciliation prototype for TakeAgent",
   "repository": {

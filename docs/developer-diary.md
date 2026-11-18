@@ -51,3 +51,7 @@ Added `docs/host-release-status.md` linking the deployed TakeAgent CSV/Excel rel
 Ran gitleaks and TruffleHog across all branches and tags, plus manual pattern greps on the working tree and history. No credentials or private keys were found. Scrubbed outsider-facing README visibility wording, generalized one sandbox-specific diary note, and added npm package description and repository metadata. LICENSE selection remains an owner decision. No adapter behavior changes.
 
 Validation: `npm run lint`, `npm test`, and `npm audit --audit-level=moderate` pass locally (74 tests). Historical commits still contain the prior README "Private," label and the original sandbox diary wording; those are documentary only and required no credential rotation.
+
+## 2026-11-18 — Adopt the MediaHedge License
+
+Added the proprietary `LICENSE` (MediaHedge License v1.0), set `package.json` / lockfile `license` to `SEE LICENSE IN LICENSE`, and documented terms in the README. Third-party dependency license metadata in `package-lock.json` is unchanged. Validation: `npm run lint`, `npm test`, and `npm audit --audit-level=moderate` pass locally. No adapter or runtime code changes.
