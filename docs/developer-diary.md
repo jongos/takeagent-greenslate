@@ -2,7 +2,7 @@
 
 ## 2026-11-17 — Add synthetic GreenSlate cost snapshot preview and reconciliation
 
-Started issue #58 in a dedicated private repository. Added a dependency-free read-only tabular adapter, explicit mappings, signed minor-unit reconciliation, source provenance, project boundary checks, revision comparison and a CLI. Added synthetic fixtures and negative tests because real export schemas and feed entitlements are unverified. Official sources support a file-first investigation and partner access discovery, not a claim of compatible live access.
+Started issue #58 in this dedicated repository. Added a dependency-free read-only tabular adapter, explicit mappings, signed minor-unit reconciliation, source provenance, project boundary checks, revision comparison and a CLI. Added synthetic fixtures and negative tests because real export schemas and feed entitlements are unverified. Official sources support a file-first investigation and partner access discovery, not a claim of compatible live access.
 
 Validation: `npm test` passes 20 tests covering reconciliation, credits, immutable previews, duplicate import detection, revision deltas, project and currency isolation, schema drift, invalid amounts/dates, overlapping rows, stale/partial data and conflict rejection. The CLI synthetic preview succeeds. No live account, vendor-export compatibility, authenticated host integration, deployment or retention service was tested. Native XLSX parsing and TakeAgent service wiring remain follow-up work.
 
@@ -10,7 +10,7 @@ Validation: `npm test` passes 20 tests covering reconciliation, credits, immutab
 
 Advanced the adapter with mapped CSV import and experimental XLSX selected-sheet extraction, preserving source rows and exact signed reconciliation. Added archive limits and active-content rejection, workbook-wide formula/object checks, hidden-sheet/selected hidden-row checks and explicit source identifiers. Added machine-readable development manifest, host security/data contract and vendor/user/engineering blocker ownership. No native vendor export profile was verified; XLSX remains synthetic-only pending process isolation because parser memory/CPU is not fully bounded by file size.
 
-Validation: 38 tests pass locally, including generated synthetic XLSX, CSV quoting, schema drift, hidden cells, formulas on selected/unselected sheets, defined names, macro/external/embedded content and compressed expansion rejection. `npm audit --audit-level=moderate` reports zero vulnerabilities after pinning ExcelJS UUID override 11.1.1. Initial local test runner needed Windows sandbox child-process escalation. CI now installs the lockfile and runs tests/audit. No deployment or live source access occurred. Host authentication, guided mapping, retention, vendor profiles and isolated runtime remain open.
+Validation: 38 tests pass locally, including generated synthetic XLSX, CSV quoting, schema drift, hidden cells, formulas on selected/unselected sheets, defined names, macro/external/embedded content and compressed expansion rejection. `npm audit --audit-level=moderate` reports zero vulnerabilities after pinning ExcelJS UUID override 11.1.1. Initial local test runner needed elevated child-process permissions in one sandboxed environment. CI now installs the lockfile and runs tests/audit. No deployment or live source access occurred. Host authentication, guided mapping, retention, vendor profiles and isolated runtime remain open.
 
 ## 2026-11-17 - Isolate XLSX previews with worker limits and fail-closed cleanup
 
@@ -45,3 +45,9 @@ Validation: expanded adapter regressions; full suite passes with lint and modera
 ## 2026-11-17 — Record current optional host release
 
 Added `docs/host-release-status.md` linking the deployed TakeAgent CSV/Excel release and explaining the division between shared host file handling and this adapter. Preserved optional installation, no-new-configuration behavior and vendor-access limitations. Refetched origin and verified the existing adapter source was already synchronized. The complete repository suite passed 55/55 tests. This commit changes documentation only; no adapter or deployment change is claimed.
+
+## 2026-11-18 — Prepare repository for public release
+
+Ran gitleaks and TruffleHog across all branches and tags, plus manual pattern greps on the working tree and history. No credentials or private keys were found. Scrubbed outsider-facing README visibility wording, generalized one sandbox-specific diary note, and added npm package description and repository metadata. LICENSE selection remains an owner decision. No adapter behavior changes.
+
+Validation: `npm run lint`, `npm test`, and `npm audit --audit-level=moderate` pass locally (74 tests). Historical commits still contain the prior README "Private," label and the original sandbox diary wording; those are documentary only and required no credential rotation.

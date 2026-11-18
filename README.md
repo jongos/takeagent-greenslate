@@ -1,6 +1,6 @@
 # TakeAgent GreenSlate integration spike
 
-Private, read-only development for [TakeAgent issue #58](https://github.com/jongos/takeagent/issues/58). This is a working synthetic tabular adapter and reconciliation prototype, not a verified GreenSlate connector or supported vendor Excel export importer.
+Read-only development prototype for [TakeAgent issue #58](https://github.com/jongos/takeagent/issues/58). This is a working synthetic tabular adapter and reconciliation prototype, not a verified GreenSlate connector or supported vendor Excel export importer.
 
 ## Run
 
