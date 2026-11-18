@@ -19,9 +19,10 @@ The preview accepts a JSON file containing explicitly selected table rows, a one
 | Input | Status |
 | --- | --- |
 | `synthetic-greenslate-tabular-v1` JSON selected rows | Tested prototype |
+| `greenslate-coa-excel-export-provisional-v1` native COA CSV/JSON | Provisional native profile ([column map](docs/native-coa-export-profile.md)) |
 | CSV using explicit synthetic mapping | Tested development reader |
 | XLSX using explicit synthetic mapping | Experimental selected-sheet reader; synthetic inputs only |
-| Native GreenSlate report versions, PDF, GL layouts | Not vendor-validated |
+| Native GreenSlate report versions, PDF, GL layouts | Provisional COA export profile only; not vendor-certified |
 | API/SFTP feeds | Disabled; no connection implementation |
 | USD, EUR, GBP, CAD, AUD | Single currency per report, two decimals, no FX conversion |
 

@@ -11,7 +11,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "lint": "node --check src/adapter.js src/cli.js src/files.js src/isolated-xlsx.js src/worker-runner.js src/xlsx-internal.js src/xlsx-worker.js",
+    "lint": "node --check src/adapter.js src/cli.js src/companion.js src/fields.js src/files.js src/isolated-xlsx.js src/profile-native-coa.js src/worker-runner.js src/xlsx-internal.js src/xlsx-worker.js",
     "preview": "node src/cli.js"
   },
   "engines": {

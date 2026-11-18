@@ -1,6 +1,8 @@
 import { createHash } from 'node:crypto';
+import { moneyFields, SYNTHETIC_TABULAR_PROFILE_ID } from './fields.js';
+import { NATIVE_COA_PROFILE_ID, nativeCoaHeaders, normalizeNativeCoaReport } from './profile-native-coa.js';
 
-export const moneyFields = ['originalBudget', 'revisedBudget', 'actuals', 'unpaidLiabilities', 'openCommitments', 'estimateToComplete', 'estimatedFinalCost'];
+export { moneyFields } from './fields.js';
 const required = ['project', 'account', 'parentAccount', 'currency', ...moneyFields];
 const fail = message => { throw new Error(message); };
 const text = value => typeof value === 'string' && value.trim().length > 0;
@@ -83,10 +85,15 @@ function assertTrustedSnapshot(snapshot) {
   }
 }
 
+const supportedProfiles = new Set([SYNTHETIC_TABULAR_PROFILE_ID, NATIVE_COA_PROFILE_ID]);
+
 export function preview(report, access, now = new Date(), { verifiedSource } = {}) {
   if (report.source !== undefined) fail('Client-supplied source provenance is not trusted');
   if (!access || !text(access.tenantId) || !text(access.projectId) || access.tenantId !== report.tenantId || access.projectId !== report.projectId) fail('Project access mismatch');
-  if (report.profile !== 'synthetic-greenslate-tabular-v1') fail('Unsupported profile; vendor export version not verified');
+  if (!supportedProfiles.has(report.profile)) fail('Unsupported profile; vendor export version not verified');
+  if (report.profile === NATIVE_COA_PROFILE_ID && nativeCoaHeaders.originalBudget in (report.totals ?? {})) {
+    report = normalizeNativeCoaReport(report);
+  }
   for (const field of ['sourceProjectId', 'revision', 'periodBasis', 'fxBasis', 'sourceFile']) if (!text(report[field])) fail(`Missing metadata: ${field}`);
   if (report.actualsBasis !== 'paid-only' || report.commitmentsBasis !== 'remaining-excludes-unpaid-liabilities') fail('Ambiguous cost overlap basis');
   if (!['USD', 'EUR', 'GBP', 'CAD', 'AUD'].includes(report.currency)) fail('Unsupported currency or decimal precision');
@@ -108,7 +115,13 @@ export function preview(report, access, now = new Date(), { verifiedSource } = {
     accounts.add(get('account'));
     const sourceRow = report.sourceRows?.[index] ?? index + 1;
     if (!Number.isSafeInteger(sourceRow) || sourceRow < 1) fail('Invalid source row');
-    const row = { account: get('account'), parentAccount: get('parentAccount'), sourceRow };
+    const row = {
+      account: get('account'),
+      parentAccount: get('parentAccount'),
+      sourceRow,
+      lineId: `greenslate-account:${get('account')}`,
+      vendorAccountCode: get('account'),
+    };
     for (const field of moneyFields) {
       row[field] = money(get(field));
       totals[field] += row[field];
@@ -121,7 +134,24 @@ export function preview(report, access, now = new Date(), { verifiedSource } = {
   const source = sourceProvenance(verifiedSource);
   const snapshot = buildCanonicalSnapshot(report, rows, totals, source);
   const fingerprint = fingerprintCanonical(snapshot);
-  return { ...snapshot, fingerprint, importedAt: now.toISOString(), readOnly: true, warnings: [...(now.getTime() - asOf > 30 * 86400000 ? ['STALE_REPORT'] : []), ...(report.complete === true ? [] : ['PARTIAL_REPORT']), 'SYNTHETIC_PROFILE_ONLY', 'COSTS_ARE_NOT_FINANCING_EVIDENCE'] };
+  const profileWarnings = report.profile === NATIVE_COA_PROFILE_ID
+    ? ['PROVISIONAL_NATIVE_PROFILE', 'NATIVE_LAYOUT_REQUIRES_USER_ATTESTATION', 'COSTS_ARE_NOT_FINANCING_EVIDENCE']
+    : ['SYNTHETIC_PROFILE_ONLY', 'COSTS_ARE_NOT_FINANCING_EVIDENCE'];
+  return {
+    ...snapshot,
+    ...(report.profile === NATIVE_COA_PROFILE_ID ? {
+      profileCertification: 'provisional',
+      nativeColumnMap: report.nativeColumnMap,
+    } : {}),
+    fingerprint,
+    importedAt: now.toISOString(),
+    readOnly: true,
+    warnings: [
+      ...(now.getTime() - asOf > 30 * 86400000 ? ['STALE_REPORT'] : []),
+      ...(report.complete === true ? [] : ['PARTIAL_REPORT']),
+      ...profileWarnings,
+    ],
+  };
 }
 
 export function compare(previous, next, access) {

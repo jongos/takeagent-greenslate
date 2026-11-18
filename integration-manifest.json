@@ -3,7 +3,14 @@
   "displayName": "GreenSlate",
   "status": "development",
   "liveEnabled": false,
-  "capabilities": ["synthetic-json-preview", "mapped-csv-preview", "experimental-isolated-xlsx-preview", "signed-cost-reconciliation", "revision-comparison"],
+  "capabilities": ["synthetic-json-preview", "mapped-csv-preview", "native-coa-csv-provisional-v1", "experimental-isolated-xlsx-preview", "signed-cost-reconciliation", "revision-comparison", "cost-findings"],
+  "exportProfiles": [
+    {
+      "id": "greenslate-coa-excel-export-provisional-v1",
+      "certification": "provisional",
+      "documentation": "docs/native-coa-export-profile.md"
+    }
+  ],
   "blockers": ["vendor-export-schema-validation", "accounting-field-definition-validation", "authenticated-host-wiring", "deployment-native-memory-and-concurrency-limits", "retention-and-deletion-controls", "vendor-feed-entitlement"],
   "sourceIssue": "https://github.com/jongos/takeagent/issues/58",
   "repository": "https://github.com/jongos/takeagent-greenslate"
