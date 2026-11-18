@@ -42,6 +42,12 @@ PR #12 review: `money()` now accepts commas only as US thousands separators (`1,
 
 Validation: expanded adapter regressions; full suite passes with lint and moderate audit locally.
 
+## 2026-11-18 — Adopt the MediaHedge License
+
+MediaHedge, Inc. approved adding the proprietary MediaHedge License v1.0 as `LICENSE` (byte-for-byte). Set `package.json` `license` to `SEE LICENSE IN LICENSE` while keeping `private: true`. Added a README License section referencing TakeAgent Terms of Service. Third-party dependency license notices in the lockfile are unchanged.
+
+Validation: `npm ci`, `npm run lint`, `npm test`, and `npm audit --audit-level=moderate` pass locally. No adapter, deployment or live vendor changes.
+
 ## 2026-11-17 — Record current optional host release
 
 Added `docs/host-release-status.md` linking the deployed TakeAgent CSV/Excel release and explaining the division between shared host file handling and this adapter. Preserved optional installation, no-new-configuration behavior and vendor-access limitations. Refetched origin and verified the existing adapter source was already synchronized. The complete repository suite passed 55/55 tests. This commit changes documentation only; no adapter or deployment change is claimed.
