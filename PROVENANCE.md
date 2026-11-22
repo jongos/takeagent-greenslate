@@ -10,7 +10,7 @@ This file records what the TakeAgent host should vendor from `jongos/takeagent-g
 | Profile certification | `provisional` |
 | Development / mapped profile | `synthetic-greenslate-tabular-v1` |
 | Package entry (preview) | `src/adapter.js` → `preview` |
-| Cost findings (no funding gap) | `src/companion.js` → `costFindings` |
+| Cost findings (no funding deficit) | `src/companion.js` → `costFindings` |
 | Native CSV entry | `src/files.js` → `previewNativeCoaCsv` |
 | Stable row cross-walk key | `lineId` (`greenslate-account:<account>`) |
 | Host contract | `docs/host-contract.md` |

@@ -12,6 +12,6 @@
     }
   ],
   "blockers": ["vendor-export-schema-validation", "accounting-field-definition-validation", "authenticated-host-wiring", "deployment-native-memory-and-concurrency-limits", "retention-and-deletion-controls", "vendor-feed-entitlement"],
-  "sourceIssue": "https://github.com/jongos/takeagent/issues/58",
+  "sourceIssue": "https://takeagent.ai/integrations/greenslate",
   "repository": "https://github.com/jongos/takeagent-greenslate"
 }

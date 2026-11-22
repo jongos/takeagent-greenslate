@@ -41,15 +41,21 @@ export function costFindings(snapshot) {
       question: 'Totals show estimated final cost above revised budget; reconcile against the finance plan separately.',
     });
   }
+  const fundingDeficit = null;
+  const fundingDeficitStatus = 'refused';
+  const cashTimingDeficit = null;
   return {
     readOnly: true,
     findings,
     warnings: [...(snapshot.warnings ?? [])],
     amountUnit: snapshot.amountUnit,
-    fundingGap: null,
-    fundingGapStatus: 'refused',
-    cashTimingGap: null,
-    limitation: 'Financing availability and cash timing require separate commitment evidence and dated cash flows.',
+    fundingDeficit,
+    fundingDeficitStatus,
+    cashTimingDeficit,
+    fundingGap: fundingDeficit,
+    fundingGapStatus: fundingDeficitStatus,
+    cashTimingGap: cashTimingDeficit,
+    limitation: 'Financing availability and cash-timing shortfalls require separate commitment evidence and dated cash flows.',
   };
 }
 

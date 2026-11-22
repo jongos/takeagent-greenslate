@@ -2,7 +2,7 @@
 
 ## 2026-11-18 — Provisional native Chart of Accounts export profile
 
-Added `greenslate-coa-excel-export-provisional-v1` with documented column map, synthetic fixture, `previewNativeCoaCsv`, stable `lineId` cross-walk keys, and `costFindings` with refused funding gap. Layout is explicitly provisional pending user-attested vendor samples; see `docs/native-coa-export-profile.md` and `PROVENANCE.md`.
+Added `greenslate-coa-excel-export-provisional-v1` with documented column map, synthetic fixture, `previewNativeCoaCsv`, stable `lineId` cross-walk keys, and `costFindings` with refused funding deficit. Layout is explicitly provisional pending user-attested vendor samples; see `docs/native-coa-export-profile.md` and `PROVENANCE.md`.
 
 ## 2026-11-17 — Add synthetic GreenSlate cost snapshot preview and reconciliation
 
