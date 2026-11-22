@@ -21,12 +21,15 @@ test('provisional native COA JSON maps to fingerprinted snapshot with stable lin
   assert.ok(result.fingerprint.length === 64);
 });
 
-test('costFindings refuses funding gap and flags descriptive cost questions', () => {
+test('costFindings refuses funding deficit and flags descriptive cost questions', () => {
   const snapshot = preview(fixture(), access, now);
   const findings = costFindings(snapshot);
-  assert.equal(findings.fundingGap, null);
-  assert.equal(findings.fundingGapStatus, 'refused');
-  assert.equal(findings.cashTimingGap, null);
+  assert.equal(findings.fundingDeficit, null);
+  assert.equal(findings.fundingDeficitStatus, 'refused');
+  assert.equal(findings.cashTimingDeficit, null);
+  assert.equal(findings.fundingGap, findings.fundingDeficit);
+  assert.equal(findings.fundingGapStatus, findings.fundingDeficitStatus);
+  assert.equal(findings.cashTimingGap, findings.cashTimingDeficit);
   assert.ok(findings.findings.some(f => f.code === 'EFC_ABOVE_REVISED_BUDGET' && f.lineId === stableLineId('2100')));
   assert.ok(findings.findings.some(f => f.code === 'TOTAL_EFC_ABOVE_REVISED_BUDGET'));
 });

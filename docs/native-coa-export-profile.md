@@ -51,7 +51,7 @@ Until then, hosts must set `profileCertification: "provisional"` and `nativeExpo
 
 ## Funding boundary
 
-`costFindings()` returns descriptive cost questions only. `fundingGap` is always `null` with `fundingGapStatus: "refused"`. Plan impact belongs in `finance.review` after user-approved mapping.
+`costFindings()` returns descriptive cost questions only. `fundingDeficit` is always `null` with `fundingDeficitStatus: "refused"`; `cashTimingDeficit` is always `null`. Deprecated compatibility keys `fundingGap`, `fundingGapStatus`, and `cashTimingGap` mirror those values. Plan impact belongs in host finance plan review after user-approved mapping.
 
 ## Topsheet cross-walk (future)
 
